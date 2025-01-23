@@ -3,7 +3,7 @@
 using System.Security.Policy;
 
 namespace KooliProjekt.Data.Repositories
-
+//tere
 {
 
     public abstract class DoctorRepository<T> where T : Entity
