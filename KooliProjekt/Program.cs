@@ -23,6 +23,8 @@ namespace KooliProjekt
 
             builder.Services.AddScoped<ApplicationDbContext>();
 
+            builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
