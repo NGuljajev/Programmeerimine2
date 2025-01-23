@@ -1,5 +1,7 @@
 ﻿using KooliProjekt.Data;
 
+using KooliProjekt.Data.Repositories;
+
 using Microsoft.AspNetCore.Mvc;
 
 using Microsoft.EntityFrameworkCore;
