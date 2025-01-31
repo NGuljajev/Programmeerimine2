@@ -1,12 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Security.Principal;
+using System.Threading.Tasks;
 
 namespace KooliProjekt.Data.Repositories
 {
-    public abstract class BaseRepository<T> where T : Entity
+    public abstract class BaseRepository<T> : IBaseRepository<T> where T : class
     {
-        protected ApplicationDbContext DbContext { get; }
+        protected readonly ApplicationDbContext DbContext;
 
-        public BaseRepository(ApplicationDbContext context)
+        protected BaseRepository(ApplicationDbContext context)
         {
             DbContext = context;
         }
@@ -19,13 +21,13 @@ namespace KooliProjekt.Data.Repositories
         public virtual async Task<PagedResult<T>> List(int page, int pageSize)
         {
             return await DbContext.Set<T>()
-                .OrderByDescending(x => x.Id)
+                .OrderByDescending(x => (x as Entity).Id)
                 .GetPagedAsync(page, pageSize);
         }
 
         public virtual async Task Save(T item)
         {
-            if (item.Id == 0)
+            if ((item as Entity).Id == 0)
             {
                 DbContext.Set<T>().Add(item);
             }
@@ -33,15 +35,17 @@ namespace KooliProjekt.Data.Repositories
             {
                 DbContext.Set<T>().Update(item);
             }
-
             await DbContext.SaveChangesAsync();
         }
 
         public virtual async Task Delete(int id)
         {
-            await DbContext.Set<T>()
-                .Where(item => item.Id == id)
-                .ExecuteDeleteAsync();
+            var entity = await DbContext.Set<T>().FindAsync(id);
+            if (entity != null)
+            {
+                DbContext.Set<T>().Remove(entity);
+                await DbContext.SaveChangesAsync();
+            }
         }
     }
 }

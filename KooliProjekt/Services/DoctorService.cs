@@ -1,87 +1,41 @@
 ﻿using KooliProjekt.Data;
-
 using KooliProjekt.Data.Repositories;
-
-using Microsoft.AspNetCore.Mvc;
-
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace KooliProjekt.Services
-
 {
-
     public class DoctorService : IDoctorService
-
     {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IDoctorRepository _doctorRepository;
 
-        private readonly ApplicationDbContext _context;
-
-        public DoctorService(ApplicationDbContext context)
-
+        public DoctorService(IUnitOfWork unitOfWork, IDoctorRepository doctorRepository)
         {
-
-            _context = context;
-
+            _unitOfWork = unitOfWork;
+            _doctorRepository = doctorRepository;
         }
 
         public async Task<PagedResult<Doctor>> List(int page, int pageSize)
-
         {
-
-            return await _context.Doctors.GetPagedAsync(page, 5);
-
+            return await _doctorRepository.List(page, pageSize);
         }
 
         public async Task<Doctor> Get(int id)
-
         {
-
-            return await _context.Doctors.FirstOrDefaultAsync(m => m.Id == id);
-
+            return await _doctorRepository.Get(id);
         }
 
-        public async Task Save(Doctor list)
-
+        public async Task Save(Doctor doctor)
         {
-
-            if (list.Id == 0)
-
-            {
-
-                _context.Add(list);
-
-            }
-
-            else
-
-            {
-
-                _context.Update(list);
-
-            }
-
-            await _context.SaveChangesAsync();
-
+            await _doctorRepository.Save(doctor);
+            await _unitOfWork.CommitAsync();
         }
 
         public async Task Delete(int id)
-
         {
-
-            var Doctor = await _context.Doctors.FindAsync(id);
-
-            if (Doctor != null)
-
-            {
-
-                _context.Doctors.Remove(Doctor);
-
-                await _context.SaveChangesAsync();
-
-            }
-
+            await _doctorRepository.Delete(id);
+            await _unitOfWork.CommitAsync();
         }
-
     }
-
 }

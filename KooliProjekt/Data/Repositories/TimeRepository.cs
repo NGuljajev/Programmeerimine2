@@ -1,81 +1,45 @@
 ﻿using Microsoft.EntityFrameworkCore;
-
-using System.Security.Policy;
+using System.Threading.Tasks;
 
 namespace KooliProjekt.Data.Repositories
-//tere
 {
-
-    public abstract class TimeRepository<T> where T : Entity
-
+    public class TimeRepository : BaseRepository<Time>, ITimeRepository
     {
+        public TimeRepository(ApplicationDbContext context) : base(context) { }
 
-        protected ApplicationDbContext DbContext { get; }
-
-        public TimeRepository(ApplicationDbContext context)
-
+        public override async Task<Time> Get(int id)
         {
-
-            DbContext = context;
-
+            return await DbContext.Set<Time>().FindAsync(id);
         }
 
-        public virtual async Task<T> Get(int id)
-
+        public override async Task<PagedResult<Time>> List(int page, int pageSize)
         {
-
-            return await DbContext.Set<T>().FindAsync(id);
-
-        }
-
-        public virtual async Task<PagedResult<T>> List(int page, int pageSize)
-
-        {
-
-            return await DbContext.Set<T>()
-
+            return await DbContext.Set<Time>()
                 .OrderByDescending(x => x.Id)
-
                 .GetPagedAsync(page, pageSize);
-
         }
 
-        public virtual async Task Save(T item)
-
+        public override async Task Save(Time item)
         {
-
             if (item.Id == 0)
-
             {
-
-                DbContext.Set<T>().Add(item);
-
+                DbContext.Set<Time>().Add(item);
             }
-
             else
-
             {
-
-                DbContext.Set<T>().Update(item);
-
+                DbContext.Set<Time>().Update(item);
             }
-
             await DbContext.SaveChangesAsync();
-
         }
 
-        public virtual async Task Delete(int id)
-
+        public override async Task Delete(int id)
         {
-
-            await DbContext.Set<T>()
-
-                .Where(item => item.Id == id)
-
-                .ExecuteDeleteAsync();
-
+            var time = await DbContext.Set<Time>().FindAsync(id);
+            if (time != null)
+            {
+                DbContext.Set<Time>().Remove(time);
+                await DbContext.SaveChangesAsync();
+            }
         }
-
     }
-
 }

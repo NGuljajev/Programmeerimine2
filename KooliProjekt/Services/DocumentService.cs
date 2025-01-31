@@ -1,85 +1,41 @@
 ﻿using KooliProjekt.Data;
-
-using Microsoft.AspNetCore.Mvc;
-
+using KooliProjekt.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace KooliProjekt.Services
-
 {
-
     public class DocumentService : IDocumentService
-
     {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IDocumentRepository _documentRepository;
 
-        private readonly ApplicationDbContext _context;
-
-        public DocumentService(ApplicationDbContext context)
-
+        public DocumentService(IUnitOfWork unitOfWork, IDocumentRepository documentRepository)
         {
-
-            _context = context;
-
+            _unitOfWork = unitOfWork;
+            _documentRepository = documentRepository;
         }
 
         public async Task<PagedResult<Document>> List(int page, int pageSize)
-
         {
-
-            return await _context.Documents.GetPagedAsync(page, 5);
-
+            return await _documentRepository.List(page, pageSize);
         }
 
         public async Task<Document> Get(int id)
-
         {
-
-            return await _context.Documents.FirstOrDefaultAsync(m => m.ID == id);
-
+            return await _documentRepository.Get(id);
         }
 
-        public async Task Save(Document list)
-
+        public async Task Save(Document document)
         {
-
-            if (list.ID == 0)
-
-            {
-
-                _context.Add(list);
-
-            }
-
-            else
-
-            {
-
-                _context.Update(list);
-
-            }
-
-            await _context.SaveChangesAsync();
-
+            await _documentRepository.Save(document);
+            await _unitOfWork.CommitAsync();
         }
 
         public async Task Delete(int id)
-
         {
-
-            var Document = await _context.Documents.FindAsync(id);
-
-            if (Document != null)
-
-            {
-
-                _context.Documents.Remove(Document);
-
-                await _context.SaveChangesAsync();
-
-            }
-
+            await _documentRepository.Delete(id);
+            await _unitOfWork.CommitAsync();
         }
-
     }
-
 }

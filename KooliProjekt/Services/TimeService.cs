@@ -1,86 +1,41 @@
 ﻿using KooliProjekt.Data;
-
-using Microsoft.AspNetCore.Mvc;
-
+using KooliProjekt.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace KooliProjekt.Services
-
 {
-
     public class TimeService : ITimeService
-
     {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ITimeRepository _timeRepository;
 
-        private readonly ApplicationDbContext _context;
-
-        public TimeService(ApplicationDbContext context)
-
+        public TimeService(IUnitOfWork unitOfWork, ITimeRepository timeRepository)
         {
-
-            _context = context;
-
+            _unitOfWork = unitOfWork;
+            _timeRepository = timeRepository;
         }
 
         public async Task<PagedResult<Time>> List(int page, int pageSize)
-
         {
-
-            return await _context.Times.GetPagedAsync(page, 5);
-
+            return await _timeRepository.List(page, pageSize);
         }
 
         public async Task<Time> Get(int id)
-
         {
-
-            return await _context.Times.FirstOrDefaultAsync(m => m.Id == id);
-
+            return await _timeRepository.Get(id);
         }
 
-        public async Task Save(Time list)
-
+        public async Task Save(Time time)
         {
-
-            if (list.Id == 0)
-
-            {
-
-                _context.Add(list);
-
-            }
-
-            else
-
-            {
-
-                _context.Update(list);
-
-            }
-
-            await _context.SaveChangesAsync();
-
+            await _timeRepository.Save(time);
+            await _unitOfWork.CommitAsync();
         }
 
         public async Task Delete(int id)
-
         {
-
-            var Time = await _context.Times.FindAsync(id);
-
-            if (Time != null)
-
-            {
-
-                _context.Times.Remove(Time);
-
-                await _context.SaveChangesAsync();
-
-            }
-
+            await _timeRepository.Delete(id);
+            await _unitOfWork.CommitAsync();
         }
-
     }
-
 }
-

@@ -1,86 +1,41 @@
 ﻿using KooliProjekt.Data;
-
-using Microsoft.AspNetCore.Mvc;
-
+using KooliProjekt.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace KooliProjekt.Services
-
 {
-
     public class InvoiceService : IInvoiceService
-
     {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IInvoiceRepository _invoiceRepository;
 
-        private readonly ApplicationDbContext _context;
-
-        public InvoiceService(ApplicationDbContext context)
-
+        public InvoiceService(IUnitOfWork unitOfWork, IInvoiceRepository invoiceRepository)
         {
-
-            _context = context;
-
+            _unitOfWork = unitOfWork;
+            _invoiceRepository = invoiceRepository;
         }
 
         public async Task<PagedResult<Invoice>> List(int page, int pageSize)
-
         {
-
-            return await _context.Invoices.GetPagedAsync(page, 5);
-
+            return await _invoiceRepository.List(page, pageSize);
         }
 
         public async Task<Invoice> Get(int id)
-
         {
-
-            return await _context.Invoices.FirstOrDefaultAsync(m => m.Id == id);
-
+            return await _invoiceRepository.Get(id);
         }
 
-        public async Task Save(Invoice list)
-
+        public async Task Save(Invoice invoice)
         {
-
-            if (list.Id == 0)
-
-            {
-
-                _context.Add(list);
-
-            }
-
-            else
-
-            {
-
-                _context.Update(list);
-
-            }
-
-            await _context.SaveChangesAsync();
-
+            await _invoiceRepository.Save(invoice);
+            await _unitOfWork.CommitAsync();
         }
 
         public async Task Delete(int id)
-
         {
-
-            var Invoice = await _context.Invoices.FindAsync(id);
-
-            if (Invoice != null)
-
-            {
-
-                _context.Invoices.Remove(Invoice);
-
-                await _context.SaveChangesAsync();
-
-            }
-
+            await _invoiceRepository.Delete(id);
+            await _unitOfWork.CommitAsync();
         }
-
     }
-
 }
-

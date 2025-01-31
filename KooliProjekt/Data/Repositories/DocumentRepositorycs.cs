@@ -1,81 +1,45 @@
 ﻿using Microsoft.EntityFrameworkCore;
-
-using System.Security.Policy;
+using System.Threading.Tasks;
 
 namespace KooliProjekt.Data.Repositories
-//tere
 {
-
-    public abstract class DocumentRepository<T> where T : Entity
-
+    public class DocumentRepository : BaseRepository<Document>, IDocumentRepository
     {
+        public DocumentRepository(ApplicationDbContext context) : base(context) { }
 
-        protected ApplicationDbContext DbContext { get; }
-
-        public DocumentRepository(ApplicationDbContext context)
-
+        public override async Task<Document> Get(int id)
         {
-
-            DbContext = context;
-
+            return await DbContext.Set<Document>().FindAsync(id);
         }
 
-        public virtual async Task<T> Get(int id)
-
+        public override async Task<PagedResult<Document>> List(int page, int pageSize)
         {
-
-            return await DbContext.Set<T>().FindAsync(id);
-
-        }
-
-        public virtual async Task<PagedResult<T>> List(int page, int pageSize)
-
-        {
-
-            return await DbContext.Set<T>()
-
-                .OrderByDescending(x => x.Id)
-
+            return await DbContext.Set<Document>()
+                .OrderByDescending(x => x.ID)
                 .GetPagedAsync(page, pageSize);
-
         }
 
-        public virtual async Task Save(T item)
-
+        public override async Task Save(Document item)
         {
-
-            if (item.Id == 0)
-
+            if (item.ID == 0)
             {
-
-                DbContext.Set<T>().Add(item);
-
+                DbContext.Set<Document>().Add(item);
             }
-
             else
-
             {
-
-                DbContext.Set<T>().Update(item);
-
+                DbContext.Set<Document>().Update(item);
             }
-
             await DbContext.SaveChangesAsync();
-
         }
 
-        public virtual async Task Delete(int id)
-
+        public override async Task Delete(int id)
         {
-
-            await DbContext.Set<T>()
-
-                .Where(item => item.Id == id)
-
-                .ExecuteDeleteAsync();
-
+            var document = await DbContext.Set<Document>().FindAsync(id);
+            if (document != null)
+            {
+                DbContext.Set<Document>().Remove(document);
+                await DbContext.SaveChangesAsync();
+            }
         }
-
     }
-
 }

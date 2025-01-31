@@ -1,81 +1,45 @@
 ﻿using Microsoft.EntityFrameworkCore;
-
-using System.Security.Policy;
+using System.Threading.Tasks;
 
 namespace KooliProjekt.Data.Repositories
-//tere
 {
-
-    public abstract class VisitRepository<T> where T : Entity
-
+    public class VisitRepository : BaseRepository<Visit>, IVisitRepository
     {
+        public VisitRepository(ApplicationDbContext context) : base(context) { }
 
-        protected ApplicationDbContext DbContext { get; }
-
-        public VisitRepository(ApplicationDbContext context)
-
+        public override async Task<Visit> Get(int id)
         {
-
-            DbContext = context;
-
+            return await DbContext.Set<Visit>().FindAsync(id);
         }
 
-        public virtual async Task<T> Get(int id)
-
+        public override async Task<PagedResult<Visit>> List(int page, int pageSize)
         {
-
-            return await DbContext.Set<T>().FindAsync(id);
-
-        }
-
-        public virtual async Task<PagedResult<T>> List(int page, int pageSize)
-
-        {
-
-            return await DbContext.Set<T>()
-
+            return await DbContext.Set<Visit>()
                 .OrderByDescending(x => x.Id)
-
                 .GetPagedAsync(page, pageSize);
-
         }
 
-        public virtual async Task Save(T item)
-
+        public override async Task Save(Visit item)
         {
-
             if (item.Id == 0)
-
             {
-
-                DbContext.Set<T>().Add(item);
-
+                DbContext.Set<Visit>().Add(item);
             }
-
             else
-
             {
-
-                DbContext.Set<T>().Update(item);
-
+                DbContext.Set<Visit>().Update(item);
             }
-
             await DbContext.SaveChangesAsync();
-
         }
 
-        public virtual async Task Delete(int id)
-
+        public override async Task Delete(int id)
         {
-
-            await DbContext.Set<T>()
-
-                .Where(item => item.Id == id)
-
-                .ExecuteDeleteAsync();
-
+            var visit = await DbContext.Set<Visit>().FindAsync(id);
+            if (visit != null)
+            {
+                DbContext.Set<Visit>().Remove(visit);
+                await DbContext.SaveChangesAsync();
+            }
         }
-
     }
-
 }
